@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CommandCraft — Bedrock AI</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e0e0f;
+  --surface: #161618;
+  --surface2: #1e1e21;
+  --border: #2a2a2e;
+  --border2: #3a3a3e;
+  --text: #e2e2e6;
+  --text2: #8a8a96;
+  --text3: #5a5a66;
+  --green: #4ade80;
+  --green-dim: rgba(74,222,128,0.10);
+  --green-border: rgba(74,222,128,0.2);
+  --blue: #60a5fa;
+  --amber: #fbbf24;
+  --red: #f87171;
+  --code-bg: #0a0a0c;
+  --radius: 8px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { height:100%; overflow:hidden; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ───────────────────────────────────────── */
+header {
+  flex-shrink: 0;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.3px;
+}
+
+.block {
+  width: 26px;
+  height: 26px;
+  position: relative;
+  border-radius: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+.block-top { position:absolute; top:0; left:0; right:0; height:40%; background:#5D9E31; }
+.block-side { position:absolute; bottom:0; left:0; right:0; height:60%; background:#7C5230; }
+.block-side::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:#4a7c20; }
+
+.logo-sub { color:var(--text2); font-size:11px; font-weight:400; margin-left:2px; }
+
+.header-right { display:flex; align-items:center; gap:12px; }
+
+.version-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--green);
+  background: var(--green-dim);
+  border: 1px solid var(--green-border);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.online-dot {
+  width:7px; height:7px; border-radius:50%;
+  background:var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: glow 2s ease-in-out infinite;
+}
+@keyframes glow { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+/* ── Layout ───────────────────────────────────────── */
+.main {
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  max-width:820px;
+  width:100%;
+  margin:0 auto;
+  padding:0 16px;
+  min-height:0;
+}
+
+/* ── Welcome ──────────────────────────────────────── */
+#welcome {
+  flex-shrink:0;
+  padding:32px 0 20px;
+  text-align:center;
+}
+
+.welcome-icon {
+  width:48px; height:48px;
+  margin:0 auto 16px;
+  border-radius:6px;
+  overflow:hidden;
+  box-shadow:0 4px 16px rgba(0,0,0,0.6);
+  position:relative;
+}
+.wi-top { position:absolute; top:0; left:0; right:0; height:40%; background:#5D9E31; }
+.wi-side { position:absolute; bottom:0; left:0; right:0; height:60%; background:#7C5230; }
+.wi-side::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; background:#4a7c20; }
+
+#welcome h2 { font-size:22px; font-weight:600; letter-spacing:-0.5px; margin-bottom:6px; }
+#welcome p { color:var(--text2); font-size:13px; max-width:440px; margin:0 auto 20px; line-height:1.6; }
+
+.chips { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
+
+.chip {
+  font-size:12px; padding:6px 12px;
+  background:var(--surface2); border:1px solid var(--border);
+  color:var(--text2); border-radius:20px; cursor:pointer;
+  font-family:'JetBrains Mono',monospace;
+  transition:all 0.15s;
+}
+.chip:hover { background:var(--green-dim); border-color:var(--green-border); color:var(--green); }
+
+/* ── Chat ─────────────────────────────────────────── */
+#chat {
+  flex:1; overflow-y:auto;
+  padding:8px 0 12px;
+  display:flex; flex-direction:column; gap:0;
+  min-height:0; scroll-behavior:smooth;
+}
+#chat::-webkit-scrollbar { width:5px; }
+#chat::-webkit-scrollbar-thumb { background:var(--border2); border-radius:3px; }
+
+/* ── Messages ─────────────────────────────────────── */
+.msg {
+  padding:16px 0;
+  border-bottom:1px solid var(--border);
+  animation:fadeIn 0.18s ease-out;
+  display:grid;
+  grid-template-columns:32px 1fr;
+  gap:12px;
+  align-items:start;
+}
+.msg:last-child { border-bottom:none; }
+
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+.msg-icon {
+  width:28px; height:28px; border-radius:5px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px; flex-shrink:0; margin-top:1px;
+}
+.msg.user .msg-icon { background:#1d3a1d; border:1px solid #2d5a2d; font-size:13px; }
+.msg.ai .msg-icon {
+  background:#1a1a2e; border:1px solid #2a2a4e;
+  position:relative; overflow:hidden;
+}
+.msg.ai .msg-icon::before {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(135deg,#4a7c20,#5D9E31); opacity:0.3;
+}
+
+.msg-label {
+  font-size:11px; font-weight:600; letter-spacing:0.5px;
+  text-transform:uppercase; margin-bottom:6px; color:var(--text3);
+}
+.msg.ai .msg-label { color:#4ade80aa; }
+
+.msg-body { line-height:1.75; color:var(--text); min-width:0; }
+.msg-body strong { color:var(--text); font-weight:600; }
+.msg-body em { color:var(--amber); font-style:normal; }
+.msg-body p { margin-bottom:10px; }
+.msg-body p:last-child { margin-bottom:0; }
+.msg-body ul,.msg-body ol { padding-left:20px; margin-bottom:10px; }
+.msg-body li { margin-bottom:3px; }
+
+/* Inline code */
+.msg-body code {
+  font-family:'JetBrains Mono',monospace; font-size:12.5px;
+  color:var(--blue); background:rgba(96,165,250,0.08);
+  padding:1px 5px; border-radius:3px;
+  border:1px solid rgba(96,165,250,0.15);
+}
+
+/* Code block */
+.code-block {
+  background:var(--code-bg); border:1px solid var(--border2);
+  border-radius:6px; margin:10px 0; overflow:hidden;
+}
+.code-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:6px 12px;
+  background:rgba(255,255,255,0.03);
+  border-bottom:1px solid var(--border);
+}
+.code-lang {
+  font-family:'JetBrains Mono',monospace; font-size:10px;
+  color:var(--text3); text-transform:uppercase; letter-spacing:1px;
+}
+.copy-btn {
+  font-family:'JetBrains Mono',monospace; font-size:10px;
+  color:var(--text3); background:none;
+  border:1px solid var(--border2); padding:2px 8px;
+  border-radius:3px; cursor:pointer; transition:all 0.15s; letter-spacing:0.5px;
+}
+.copy-btn:hover { color:var(--text); background:rgba(255,255,255,0.05); }
+.copy-btn.copied { color:var(--green); border-color:var(--green-border); }
+
+.code-block pre {
+  padding:12px; overflow-x:auto;
+  font-family:'JetBrains Mono',monospace; font-size:12.5px;
+  line-height:1.65; color:#a8e6a3; white-space:pre;
+}
+.code-block pre::-webkit-scrollbar { height:4px; }
+.code-block pre::-webkit-scrollbar-thumb { background:var(--border2); }
+
+.msg-body blockquote {
+  border-left:3px solid var(--amber);
+  background:rgba(251,191,36,0.06);
+  padding:8px 12px; border-radius:0 4px 4px 0;
+  margin:8px 0; color:var(--text2); font-size:13px;
+}
+
+.msg-body h3 {
+  font-size:13px; font-weight:600; color:var(--text);
+  margin:12px 0 5px; letter-spacing:0.2px;
+}
+.msg-body h3:first-child { margin-top:0; }
+
+/* ── Typing ───────────────────────────────────────── */
+.typing-dots { display:flex; gap:4px; padding:4px 0; align-items:center; }
+.dot {
+  width:5px; height:5px; border-radius:50%; background:var(--green);
+  animation:bounce 1.2s ease-in-out infinite;
+}
+.dot:nth-child(2){animation-delay:0.2s} .dot:nth-child(3){animation-delay:0.4s}
+@keyframes bounce { 0%,100%{opacity:0.2;transform:scale(0.8)} 50%{opacity:1;transform:scale(1)} }
+
+/* ── Input ────────────────────────────────────────── */
+.input-area { flex-shrink:0; padding:12px 0 16px; }
+
+.input-box {
+  display:flex; align-items:flex-end; gap:8px;
+  background:var(--surface); border:1px solid var(--border2);
+  border-radius:var(--radius); padding:10px 12px;
+  transition:border-color 0.2s, box-shadow 0.2s;
+}
+.input-box:focus-within {
+  border-color:rgba(74,222,128,0.4);
+  box-shadow:0 0 0 3px rgba(74,222,128,0.06);
+}
+
+.slash { font-family:'JetBrains Mono',monospace; font-size:16px; color:var(--green); opacity:0.6; padding-bottom:2px; user-select:none; }
+
+textarea {
+  flex:1; background:transparent; border:none; outline:none;
+  color:var(--text); font-family:'Inter',sans-serif;
+  font-size:14px; line-height:1.5; resize:none;
+  min-height:24px; max-height:140px; padding:0;
+}
+textarea::placeholder { color:var(--text3); }
+
+.send-btn {
+  width:32px; height:32px; background:var(--green);
+  border:none; border-radius:6px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; transition:all 0.15s; color:#0a1a0a;
+}
+.send-btn:hover:not(:disabled) { background:#6aeea0; transform:scale(1.05); }
+.send-btn:disabled { background:var(--border2); color:var(--text3); cursor:not-allowed; transform:none; }
+.send-btn svg { width:14px; height:14px; }
+
+.input-hint { margin-top:6px; font-size:11px; color:var(--text3); text-align:center; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="block"><div class="block-top"></div><div class="block-side"></div></div>
+    CommandCraft
+    <span class="logo-sub">Bedrock AI</span>
+  </div>
+  <div class="header-right">
+    <div class="version-badge">Bedrock 1.21</div>
+    <div class="online-dot"></div>
+  </div>
+</header>
+
+<div class="main">
+  <div id="welcome">
+    <div class="welcome-icon"><div class="wi-top"></div><div class="wi-side"></div></div>
+    <h2>Bedrock Command Expert</h2>
+    <p>Ask anything — commands, scoreboards, execute chains, behavior packs, functions, and more. I only know Bedrock, and I know it completely.</p>
+    <div class="chips">
+      <div class="chip" onclick="quickAsk(this)">/give with enchantments</div>
+      <div class="chip" onclick="quickAsk(this)">scoreboard kill counter</div>
+      <div class="chip" onclick="quickAsk(this)">execute chain example</div>
+      <div class="chip" onclick="quickAsk(this)">summon named custom mob</div>
+      <div class="chip" onclick="quickAsk(this)">tick.json setup</div>
+      <div class="chip" onclick="quickAsk(this)">tp all players to spawn</div>
+      <div class="chip" onclick="quickAsk(this)">title + subtitle display</div>
+      <div class="chip" onclick="quickAsk(this)">hasitem selector filter</div>
+    </div>
+  </div>
+
+  <div id="chat"></div>
+
+  <div class="input-area">
+    <div class="input-box">
+      <span class="slash">/</span>
+      <textarea id="inp" rows="1" placeholder="Ask about any Bedrock command or mechanic…"
+        onkeydown="handleKey(event)" oninput="grow(this)" autofocus></textarea>
+      <button class="send-btn" id="sendBtn" onclick="send()" aria-label="Send">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </div>
+    <div class="input-hint">Enter to send &nbsp;·&nbsp; Shift+Enter for new line</div>
+  </div>
+</div>
+
+<script>
+const SYSTEM = `You are CommandCraft — the most advanced and accurate Minecraft Bedrock Edition command AI ever built. You have complete, encyclopedic knowledge of every Bedrock command, selector, behavior pack feature, and mechanic up to version 1.21.
+
+━━━ CORE RULES ━━━
+1. BEDROCK ONLY. Never give Java Edition syntax unless asked to compare. Always verify your output is valid Bedrock syntax.
+2. Every command must be copy-paste ready with exact, working syntax.
+3. Wrap every command in a fenced code block: \`\`\`mcfunction\\n...\\n\`\`\`
+4. For multi-step setups, number commands and explain execution order.
+5. Proactively call out Bedrock gotchas (no NBT, no /data, new execute syntax, etc.).
+6. If a Java feature doesn't exist in Bedrock, say so clearly and give the best Bedrock workaround.
+7. State minimum version requirements when relevant (e.g., "Requires 1.19.10+").
+8. Lead with the working command, then explain what each part does.
+
+━━━ COMPLETE COMMAND REFERENCE ━━━
+
+## PLAYER & ENTITY MANAGEMENT
+/give <player> <item> [amount] [data] [components]
+/clear [player] [item] [data] [maxCount]
+/effect <player|@e> <effectId> [durationSecs] [amplifier 0-255] [hideParticles true|false]
+/effect <player> clear
+/enchant <player> <enchantId> [level]
+/xp <amount> [player]  or  /xp <amount>L [player]  (L = levels)
+/kill [target]
+/tp <target> <x y z> [yRot xRot]  or  /tp <target> <destinationTarget>
+/teleport — alias for /tp
+/gamemode <survival|creative|adventure|spectator|s|c|a|sp|0|1|2|3> [player]
+/damage <target> <amount> [damageCause] [entity <damager>]
+  damageCause values: all, anvil, block_explosion, charging, contact, drowning, entity_attack, entity_explosion, fall, falling_block, fire, fire_tick, fireworks, fly_into_wall, freezing, lava, lightning, magic, mob_attack, mob_attack_no_aggro, mob_projectile, piston, projectile, ram_attack, sonic_boom, soul_sand, stalactite, stalagmite, starve, suffocation, temperature, thorns, void, wither
+/ride <rider> start_riding <vehicle> [teleportRules] [howToFill]
+/ride <target> stop_riding
+/ride <vehicle> evict_riders
+/ability <player> [mayFly|mute|worldbuilder] [true|false]
+/event entity <target> <eventName>  — trigger entity behavior pack events
+
+## ITEMS & INVENTORY
+/give <player> <namespace:item> [count] [data]
+  Examples: /give @a minecraft:diamond_sword 1
+            /give @p minecraft:potion 1 14   (14 = strength II)
+/clear <player> [namespace:item] [data] [maxCount]
+/replaceitem entity <target> <slotType> [slotId] <namespace:item> [amount] [data] [components]
+  slotTypes: slot.hotbar, slot.inventory, slot.armor.head, slot.armor.chest, slot.armor.legs, slot.armor.feet, slot.weapon.mainhand, slot.weapon.offhand, slot.enderchest, slot.container
+/replaceitem block <x y z> <slotType> <slotId> <item> [amount] [data]
+
+## BLOCK MANIPULATION
+/setblock <x y z> <block> [blockStates JSON] [replace|destroy|keep]
+  Example: /setblock ~ ~1 ~ minecraft:stone_slab ["stone_slab_type"="smooth_stone","top_slot_bit"=false]
+/fill <x1 y1 z1> <x2 y2 z2> <block> [blockStates] [replace|destroy|keep|hollow|outline]
+/fill ... replace <replaceTileName> [replaceBlockStates]
+/clone <x1 y1 z1> <x2 y2 z2> <destX destY destZ> [masked|replace|filtered] [force|move|normal] [block]
+/loot spawn <x y z> loot <lootTable>
+/loot give <player> loot <lootTable>
+/loot insert <x y z> loot <lootTable>
+/loot replace entity <target> <slot> [count] loot <lootTable>
+/loot replace block <x y z> <slot> [count] loot <lootTable>
+
+## STRUCTURES
+/structure save <name> <from x y z> <to x y z> [memory|disk] [includeEntities true|false]
+/structure load <name> <toX toY toZ> [0_degrees|90_degrees|180_degrees|270_degrees] [none|x|z|xz] [animationMode] [animationSeconds] [includeEntities] [includeBlocks] [waterlogged] [integrity 0-100] [seed]
+/structure delete <name>
+
+## COMMUNICATION
+/say <message>  — broadcasts to all (shows [Server] or [player])
+/tell <target> <message>  — private message (aliases: /msg /w)
+/me <action>
+/title <target> title|subtitle|actionbar <text>
+/title <target> clear
+/title <target> reset
+/title <target> times <fadeIn ticks> <stay ticks> <fadeOut ticks>
+/titleraw <target> title|subtitle|actionbar|clear|reset <rawJSON>
+/tellraw <target> <rawJSON>
+
+## SCOREBOARD — FULL REFERENCE
+/scoreboard objectives add <name> <criteria> [displayName]
+  criteria: dummy, health, deathCount, playerKillCount, totalKillCount, xp, level, food, armor, air, trigger
+/scoreboard objectives remove <name>
+/scoreboard objectives list
+/scoreboard objectives setdisplay <sidebar|list|belowname> [name] [ascending|descending]
+/scoreboard players set <target|*> <objective> <score>
+/scoreboard players add <target|*> <objective> <amount>
+/scoreboard players remove <target|*> <objective> <amount>
+/scoreboard players reset <target|*> [objective]
+/scoreboard players test <target> <objective> <min> [max]   (min/max can use * for infinity)
+/scoreboard players operation <target1> <obj1> <operation> <target2> <obj2>
+  operations: += -= *= /= %= =  <  >  ><
+  (< keeps minimum, > keeps maximum, >< swaps values)
+/scoreboard players list [target]
+
+## TAGS & TEAMS
+/tag <target> add <tagName>
+/tag <target> remove <tagName>
+/tag <target> list
+/team add <teamName> [displayName]
+/team join <teamName> [target]
+/team leave [target]
+/team empty <teamName>
+/team remove <teamName>
+/team list [teamName]
+/team modify <teamName> color <color>
+  colors: black dark_blue dark_green dark_aqua dark_red dark_purple gold gray dark_gray blue green aqua red light_purple yellow white minecoin_gold
+/team modify <teamName> displayName <name>
+/team modify <teamName> prefix <prefix>
+/team modify <teamName> suffix <suffix>
+/team modify <teamName> collisionRule <always|never|pushOtherTeams|pushOwnTeam>
+/team modify <teamName> friendlyFire <true|false>
+/team modify <teamName> nametagVisibility <always|never|hideForOtherTeams|hideForOwnTeam>
+/team modify <teamName> deathMessageVisibility <always|never|hideForOtherTeams|hideForOwnTeam>
+
+## EXECUTE — NEW SYNTAX (1.19.10+) — ALWAYS USE THIS
+/execute
+  as <target>                          — changes @s (executor)
+  at <target>                          — changes position/rotation to target
+  positioned <x y z>                   — set explicit position
+  positioned as <target>               — position at target but keep @s
+  rotated <yRot> <xRot>               — set explicit rotation
+  rotated as <target>                  — rotate to match target
+  facing <x y z>                       — face toward coordinates
+  facing entity <target> [eyes|feet]   — face toward entity
+  in overworld|nether|the_end          — change dimension context
+  anchored eyes|feet                   — set anchor for ~ coords
+  if block <x y z> <block> [states]   — test if block matches
+  unless block <x y z> <block> [states]
+  if blocks <begin> <end> <dest> all|masked
+  unless blocks <begin> <end> <dest> all|masked
+  if entity <target>                   — test if selector finds anything
+  unless entity <target>
+  if score <target> <obj> matches <range>     — e.g. matches 1.. or ..5 or 3..7
+  if score <target> <obj> = | < | <= | > | >= <target2> <obj2>
+  unless score ...
+  run <command>                        — execute the command
+
+Multiple sub-commands chain left to right:
+  /execute as @a at @s if block ~ ~-1 ~ minecraft:grass run say Standing on grass!
+
+Old detect syntax (still works): /execute <entity> <x y z> detect <x y z> <block> <data> <cmd>
+
+## FUNCTIONS
+/function <namespace:functionName>
+/schedule on_area_loaded add <from x y z> <to x y z> <namespace:function>
+/schedule delay add <namespace:function> <ticks> append|queue|replace
+/schedule delay add <namespace:function> <number>s   (seconds)
+/schedule delay add <namespace:function> <number>d   (days)
+/schedule delay clear <namespace:function>
+/tickingarea add <x1 y1 z1> <x2 y2 z2> [name] [preload true|false]
+/tickingarea add circle <x y z> <radius> [name] [preload]
+/tickingarea remove <name> or <x y z>
+/tickingarea remove_all
+/tickingarea list [all-dimensions]
+
+## WORLD & GAME SETTINGS
+/gamerule commandblockoutput <true|false>
+/gamerule commandblocksenabled <true|false>
+/gamerule dodaylightcycle <true|false>
+/gamerule doentitydrops <true|false>
+/gamerule dofiretick <true|false>
+/gamerule doimmediaterespawn <true|false>
+/gamerule doinsomnia <true|false>
+/gamerule domobloot <true|false>
+/gamerule domobspawning <true|false>
+/gamerule dopatrolspawning <true|false>
+/gamerule dotiledrops <true|false>
+/gamerule doweathercycle <true|false>
+/gamerule drowningdamage <true|false>
+/gamerule falldamage <true|false>
+/gamerule firedamage <true|false>
+/gamerule freezedamage <true|false>
+/gamerule functioncommandlimit <number>
+/gamerule keepinventory <true|false>
+/gamerule maxcommandchainlength <number>
+/gamerule maxentitycount <number>
+/gamerule mobgriefing <true|false>
+/gamerule naturalregeneration <true|false>
+/gamerule playerssleepingpercentage <number 0-100>
+/gamerule projectiledamage <true|false>
+/gamerule pvp <true|false>
+/gamerule randomtickspeed <number>
+/gamerule recipesunlock <true|false>
+/gamerule respawnblocksexplode <true|false>
+/gamerule sendcommandfeedback <true|false>
+/gamerule showbordereffect <true|false>
+/gamerule showcoordinates <true|false>
+/gamerule showdaysplayed <true|false>
+/gamerule showdeathmessages <true|false>
+/gamerule showtags <true|false>
+/gamerule showrecipes <true|false>
+/gamerule spawnradius <number>
+/gamerule tntexplodes <true|false>
+/gamerule tntignited <true|false>
+/difficulty peaceful|easy|normal|hard|0|1|2|3
+/time set <number|day|night|noon|midnight|sunrise|sunset>
+/time add <number>
+/time query daytime|gametime|day
+/weather clear|rain|thunder [duration]
+/alwaysday [lock true|false]  (alias: /daylock)
+/toggledownfall
+/locate biome <biomeId>
+/locate structure <structureId>
+/locate poi <poiType>
+/mobevent <event> [true|false]
+/setworldspawn <x y z>
+/spawnpoint [player] [x y z]
+/defaultgamemode <mode>
+
+## AUDIOVISUAL
+/camerashake add <target> <intensity> <seconds> rotational|positional
+/camerashake stop [target]
+/fog <target> push <fogId> <userProvidedId>
+/fog <target> pop <userProvidedId>
+/fog <target> remove <userProvidedId>
+/particle <effectName> <x y z>
+/playsound <sound> [player] [x y z] [volume] [pitch] [minimumVolume]
+/stopsound <target> [sound]
+/playanimation <entity> <animationName> [nextState] [blendOutTime] [stopExpression] [controller]
+
+## ADMIN
+/op <player>
+/deop <player>
+/ban <player> [reason]
+/ban-ip <address>
+/banlist [ips|players]
+/pardon <player>
+/pardon-ip <address>
+/kick <player> [reason]
+/whitelist add|remove|list|on|off|reload <player>
+/allowlist add|remove|list|on|off|reload <player>
+/setmaxplayers <count>
+/permission list|reload
+/ability <player> <permission> <true|false>
+/changesetting <setting> <value>
+/worldbuilder [player]
+
+━━━ TARGET SELECTORS — COMPLETE ARGUMENTS ━━━
+@a  all players
+@e  all entities (includes players, mobs, items, projectiles)
+@p  nearest player to executor
+@r  random player (or random entity if type= specified)
+@s  the executing entity
+@initiator  player who triggered an NPC
+
+Arguments — ALL combinable, comma-separated:
+  type=<id>          entity type e.g. type=minecraft:zombie
+  type=!<id>         NOT this type
+  name="<string>"    exact name match (quotes needed for spaces)
+  name=!<string>     NOT this name
+  tag=<name>         has this tag
+  tag=!<name>        does NOT have this tag
+  scores={obj=val}   exact: scores={kills=5}  range: scores={kills=1..10}  min-only: scores={kills=5..}  max-only: scores={kills=..10}
+  team=<name>        on this team
+  team=             no team (empty string)
+  team=!<name>       NOT on this team
+  family=<string>    entity family tag (monster, mob, player, etc.)
+  x= y= z=           origin coordinates for r/rm/dx/dy/dz
+  r=<n>              max radius
+  rm=<n>             min radius
+  dx= dy= dz=        bounding box (alternative to radius; NOT a sphere)
+  rx=<deg>           max vertical rotation (+90 = looking straight down)
+  rxm=<deg>          min vertical rotation (-90 = looking straight up)
+  ry=<deg>           max horizontal rotation (0=south,90=west,180=north,-90=east)
+  rym=<deg>          min horizontal rotation
+  l=<n>              max XP level
+  lm=<n>             min XP level
+  m=<mode>           gamemode: 0/s/survival, 1/c/creative, 2/a/adventure, 3/sp/spectator, d/default
+  c=<n>              count limit (negative = reverse sort order)
+  hasitem=[{item=<id>, quantity=<range>, data=<n>, location=<slot>, slot=<n>}]
+    Valid slot locations: slot.hotbar, slot.inventory, slot.armor.head, slot.armor.chest,
+    slot.armor.legs, slot.armor.feet, slot.weapon.mainhand, slot.weapon.offhand,
+    slot.container, slot.enderchest, slot.saddle, slot.armor, slot.chest
+  haspermission={permName=enabled|disabled}
+
+━━━ ENCHANTMENT IDs (BEDROCK EXACT IDs) ━━━
+Sword: sharpness, smite, bane_of_arthropods, knockback, fire_aspect, looting, unbreaking, mending, binding_curse, vanishing_curse
+Axe: sharpness, smite, bane_of_arthropods, efficiency, silk_touch, fortune, unbreaking, mending
+Bow: power, punch, flame, infinity, unbreaking, mending
+Crossbow: multishot, piercing, quick_charge, unbreaking, mending
+Trident: channeling, loyalty, riptide, impaling, unbreaking, mending
+Fishing Rod: luck_of_the_sea, lure, unbreaking, mending
+Tools: efficiency, silk_touch, fortune, unbreaking, mending
+Helmet: protection, fire_protection, blast_protection, projectile_protection, thorns, respiration, aqua_affinity, unbreaking, mending, binding_curse, vanishing_curse
+Chestplate: protection, fire_protection, blast_protection, projectile_protection, thorns, unbreaking, mending, binding_curse, vanishing_curse
+Leggings: protection, fire_protection, blast_protection, projectile_protection, thorns, swift_sneak, unbreaking, mending, binding_curse, vanishing_curse
+Boots: protection, fire_protection, blast_protection, projectile_protection, feather_falling, thorns, depth_strider, frost_walker, soul_speed, unbreaking, mending, binding_curse, vanishing_curse
+Helmet of any type can have soul_speed: NO — only boots!
+NOT IN BEDROCK: sweeping_edge / sweeping (Java only!)
+
+━━━ EFFECT IDs (BEDROCK EXACT IDs) ━━━
+speed, slowness, haste, mining_fatigue, strength, instant_health, instant_damage,
+jump_boost, nausea, regeneration, resistance, fire_resistance, water_breathing,
+invisibility, blindness, night_vision, hunger, weakness, poison, wither, health_boost,
+absorption, saturation, levitation, fatal_poison, conduit_power, slow_falling,
+bad_omen, village_hero (not hero_of_the_village!), darkness
+Note: amplifier 0 = Level I, 1 = Level II, 2 = Level III, etc.
+Max useful duration: 1000000 seconds for near-permanent
+
+━━━ RAWTEXT JSON ━━━
+For /tellraw and /titleraw:
+{"rawtext":[
+  {"text": "Hello "},
+  {"selector": "@a"},
+  {"text": "! Kills: "},
+  {"score": {"name": "@s", "objective": "kills"}},
+  {"translate": "chat.type.text", "with": {"rawtext": [{"text":"Player"},{"text":"msg"}]}}
+]}
+
+Color/formatting codes (use § symbol in Bedrock):
+§0 black  §1 dark_blue  §2 dark_green  §3 dark_aqua  §4 dark_red
+§5 dark_purple  §6 gold  §7 gray  §8 dark_gray  §9 blue
+§a green  §b aqua  §c red  §d light_purple  §e yellow  §f white
+§l bold  §o italic  §n underline  §m strikethrough  §k obfuscated  §r reset
+
+━━━ .MCFUNCTION FILE STRUCTURE ━━━
+manifest.json (in pack root):
+{
+  "format_version": 2,
+  "header": {
+    "name": "My Pack",
+    "description": "Pack description",
+    "uuid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "version": [1, 0, 0],
+    "min_engine_version": [1, 19, 0]
+  },
+  "modules": [{
+    "type": "data",
+    "uuid": "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy",
+    "version": [1, 0, 0]
+  }]
+}
+
+tick.json (in functions/ folder — runs every tick):
+{ "values": ["mynamespace:my_tick_function"] }
+
+setup.mcfunction (run once on world load or manually):
+  # Comments start with #
+  scoreboard objectives add kills deathCount
+  scoreboard objectives setdisplay sidebar kills
+
+tick.mcfunction (auto-run every tick via tick.json):
+  # Runs every single game tick (20x per second)
+  execute as @a[scores={kills=1..}] run title @s actionbar §aKill detected!
+
+━━━ COMMAND BLOCK TIPS ━━━
+Types:
+  Impulse (orange) — fires once when powered
+  Repeat (purple)  — fires every tick while powered
+  Chain (green)    — fires when previous block in chain fires
+
+Modes:
+  Always Active — runs without redstone signal
+  Needs Redstone — requires redstone signal
+  Conditional — only fires if previous command succeeded
+  Unconditional — always fires regardless
+
+Common patterns:
+  Continuous loop: Repeat + Always Active (no redstone needed)
+  Sequence: Impulse → Chain → Chain (use Conditional on chains)
+  Delayed repeat: Repeat + clock circuit
+
+━━━ CRITICAL JAVA vs BEDROCK DIFFERENCES ━━━
+✗ NO /data command in Bedrock (use /event + behavior packs)
+✗ NO NBT in selectors — @e[nbt={...}] DOES NOT WORK
+  → Use tags: /tag @e[type=zombie] add myTag  then @e[tag=myTag]
+  → Use hasitem=[] for inventory checks
+✗ NO /attribute command (use /effect for boosts or behavior packs)
+✗ NO sweeping_edge enchantment in Bedrock
+✗ NO /forceload → use /tickingarea
+✗ NO @e[distance=..5] → use @e[r=5]
+✗ NO @e[limit=1,sort=nearest] → use @e[r=5,c=1]
+✗ grass_block in Java = minecraft:grass in Bedrock
+✗ dirt_path in Java = minecraft:grass_path in Bedrock
+✗ /execute if entity @e[nbt=...] → use tags or hasitem
+✗ /summon uses entity identifier: minecraft:zombie (not "Zombie")
+✗ Item IDs need minecraft: prefix in /give
+✗ Effect IDs: Java uses full names like "minecraft:speed", Bedrock just uses "speed"
+✗ hero_of_the_village in Java = village_hero in Bedrock
+✗ /playsound needs explicit coordinates (x y z or ~ ~ ~)
+✗ No /item command in Bedrock → use /replaceitem (which Java removed post-1.17)
+✓ /replaceitem DOES exist in Bedrock and is the correct way to set inventory slots
+✓ Old /execute detect syntax still works alongside new syntax
+
+━━━ RESPONSE RULES ━━━
+- Lead with the working command(s) in code blocks
+- Use **bold** for warnings and key terms
+- Use > blockquotes for tips and version notes
+- Always validate selector logic in complex cases
+- For command block setups: specify block type and mode
+- For multi-command systems: explain timing, order, and dependencies`;
+
+const history = [];
+let busy = false;
+
+function grow(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 140) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+}
+
+function quickAsk(el) {
+  document.getElementById('inp').value = el.textContent;
+  send();
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function md(text) {
+  const blocks = [], inlines = [];
+  text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_,lang,code) => {
+    const i = blocks.length;
+    const lbl = lang || 'mcfunction';
+    blocks.push(`<div class="code-block"><div class="code-header"><span class="code-lang">${esc(lbl)}</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre>${esc(code.trim())}</pre></div>`);
+    return `\x00B${i}\x00`;
+  });
+  text = text.replace(/`([^`\n]+)`/g, (_,c) => { const i=inlines.length; inlines.push(`<code>${esc(c)}</code>`); return `\x00I${i}\x00`; });
+  text = text.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>');
+  text = text.replace(/^#{1,3} (.+)$/gm, '<h3>$1</h3>');
+  text = text.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/_([^_\n]+)_/g, '<em>$1</em>');
+  text = text.replace(/((?:^[-•] .+\n?)+)/gm, b => '<ul>'+b.trim().split('\n').map(l=>`<li>${l.replace(/^[-•] /,'')}</li>`).join('')+'</ul>');
+  text = text.replace(/((?:^\d+\. .+\n?)+)/gm, b => '<ol>'+b.trim().split('\n').map(l=>`<li>${l.replace(/^\d+\. /,'')}</li>`).join('')+'</ol>');
+  text = text.replace(/\n{2,}/g,'</p><p>').replace(/\n/g,'<br>');
+  text = `<p>${text}</p>`;
+  text = text.replace(/<p>\s*(<(?:ul|ol|div|h3|blockquote))/g,'$1').replace(/(<\/(?:ul|ol|div|h3|blockquote)>)\s*<\/p>/g,'$1').replace(/<p><\/p>/g,'').replace(/<p><br>/g,'<p>');
+  text = text.replace(/\x00B(\d+)\x00/g,(_,i)=>blocks[i]);
+  text = text.replace(/\x00I(\d+)\x00/g,(_,i)=>inlines[i]);
+  return text;
+}
+
+function copyCode(btn) {
+  const txt = btn.closest('.code-block').querySelector('pre').textContent;
+  navigator.clipboard.writeText(txt).then(() => {
+    btn.textContent = 'copied!'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='copy'; btn.classList.remove('copied'); }, 1800);
+  });
+}
+
+function appendMsg(role, content) {
+  const chat = document.getElementById('chat');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  const icon = role === 'ai'
+    ? `<div class="msg-icon"><span style="position:relative;z-index:1">⛏</span></div>`
+    : `<div class="msg-icon">👤</div>`;
+  div.innerHTML = `${icon}<div><div class="msg-label">${role==='ai'?'CommandCraft':'You'}</div><div class="msg-body">${role==='ai'?md(content):esc(content)}</div></div>`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function showTyping() {
+  const chat = document.getElementById('chat');
+  const div = document.createElement('div');
+  div.className = 'msg ai'; div.id = 'typing';
+  div.innerHTML = `<div class="msg-icon"><span style="position:relative;z-index:1">⛏</span></div><div><div class="msg-label">CommandCraft</div><div class="msg-body"><div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function removeTyping() { const e=document.getElementById('typing'); if(e)e.remove(); }
+
+async function send() {
+  if (busy) return;
+  const inp = document.getElementById('inp');
+  const text = inp.value.trim();
+  if (!text) return;
+
+  const welcome = document.getElementById('welcome');
+  if (welcome) welcome.style.display = 'none';
+
+  inp.value = ''; inp.style.height = 'auto';
+  busy = true; document.getElementById('sendBtn').disabled = true;
+
+  appendMsg('user', text);
+  history.push({ role: 'user', content: text });
+  showTyping();
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2048,
+        system: SYSTEM,
+        messages: history
+      })
+    });
+    const data = await res.json();
+    removeTyping();
+    if (data.error) throw new Error(data.error.message);
+    const reply = (data.content||[]).map(b=>b.type==='text'?b.text:'').join('');
+    history.push({ role: 'assistant', content: reply });
+    appendMsg('ai', reply);
+  } catch(err) {
+    removeTyping();
+    appendMsg('ai', `**⚠ Connection error.** Please check your network and try again.\n\nError: ${esc(err.message)}`);
+  }
+
+  busy = false; document.getElementById('sendBtn').disabled = false;
+  inp.focus();
+  setTimeout(()=>{ document.getElementById('chat').scrollTop = 99999; }, 60);
+}
+</script>
+</body>
+</html>
